@@ -1,0 +1,50 @@
+version: 2.1
+
+executors:
+  docker_latest:
+    working_directory: /tmp/workspace0
+    docker:
+      - image: docker:latest
+
+jobs:
+    build_app:
+        resource_class: small
+        parameters:
+            with_deploy:
+                type: boolean
+                default: false
+        executor: docker_latest
+        steps:
+            - checkout
+            - setup_remote_docker:
+                version: 19.03.13
+            - restore_cache:
+                keys:
+                    - pipenv-v0-{{ checksum "Pipfile.lock" }}
+            - run:
+                name: Build application
+                command: |
+                    docker build -t $CONTAINER_REGISTRY_URL/$CONTAINER_REGISTRY/livenow-discord:latest .
+            - save_cache:
+                key: pipenv-v0-{{ checksum "Pipfile.lock" }}
+                paths:
+                    - ~/.cache/pipenv
+            - when:
+                condition: <<parameters.with_deploy>>
+                steps:
+                    - run:
+                        name: Publish to GitHub Container Registry
+                        command: |
+                            echo $CONTAINER_REGISTRY_PASS | docker login ghcr.io -u $CONTAINER_REGISTRY_USER --password-stdin
+                            docker push $CONTAINER_REGISTRY_URL/$CONTAINER_REGISTRY/livenow-discord:latest
+                            
+workflows:
+    version: 2
+    build:
+        jobs:
+            - build_app:
+                name: Build & Deploy
+                with_deploy: true
+                filters:
+                    branches:
+                        only: master
