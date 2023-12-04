@@ -1,7 +1,5 @@
 import asyncio
-import datetime
 import os
-import signal
 import sys
 from typing import Dict, Final
 
@@ -27,7 +25,6 @@ DISCORD_CHANNEL: Final[str] = os.environ.get("DISCORD_CHANNEL")
 RETCODE: int = 0
 EVLOOP: Final[asyncio.AbstractEventLoop] = asyncio.new_event_loop()
 LOGGER: Final[structlog.stdlib.BoundLogger] = structlog.getLogger()
-RUNNING: bool = True
 MSGS: Dict[str, disnake.message.Message] = {}
 
 
@@ -63,12 +60,6 @@ async def add_stream(ctx: disnake.ApplicationCommandInteraction, stream: str):
     )
 
 
-def stop_running(sig, frame):
-    LOGGER.debug("stop called! shutting down...", sig=sig)
-    global RUNNING
-    RUNNING = False
-
-
 async def main() -> int:
     global TWITCH
     global TWITCH_EVENTSUB
@@ -80,20 +71,17 @@ async def main() -> int:
     TWITCH_EVENTSUB = EventSubWebhook(TWITCH_EVENTSUB_URL, 8080, TWITCH)
     TWITCH_EVENTSUB.start()
 
-    # start discord bot
-    LOGGER.info(
-        "connecting to the Discord gateway and starting the command handlers.")
-    await DISCORD_BOT.start(DISCORD_TOKEN, reconnect=True)
-
-    # run until an interrupt is received
-    LOGGER.info("all ready, working until interrupted")
-    signal.signal(signal.SIGINT, stop_running)
-    while RUNNING:
-        LOGGER.debug("debug sleeping", t=datetime.now())
-        await asyncio.sleep(1)
-    LOGGER.info("gracefully disconnecting from all services")
-    await asyncio.gather(TWITCH_EVENTSUB.stop(), TWITCH.close(),
-                         DISCORD_BOT.close())
+    # run discord bot until interrupted
+    LOGGER.info("all ready, running Discord bot until interrupted")
+    try:
+        EVLOOP.run_until_complete(
+            DISCORD_BOT.start(DISCORD_TOKEN, reconnect=True))
+    except KeyboardInterrupt:
+        LOGGER.info("stop called! shutting down...")
+    finally:
+        LOGGER.info("gracefully disconnecting from all services")
+        await asyncio.gather(TWITCH_EVENTSUB.stop(), TWITCH.close(),
+                             DISCORD_BOT.close())
     return RETCODE
 
 
