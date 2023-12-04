@@ -53,7 +53,9 @@ async def on_stream_online(payload: StreamOnlineEvent):
     MSGS.update({f"{payload.event.broadcaster_user_name}": msg})
 
 
-@DISCORD_BOT.slash_command(dm_permission=False)
+@DISCORD_BOT.slash_command(dm_permission=False,
+                           name="add_stream",
+                           auto_sync=True)
 async def add_stream(ctx: disnake.ApplicationCommandInteraction, stream: str):
     twitch_user = await first(TWITCH.get_users(logins=[stream]))
     if twitch_user is None:
@@ -78,7 +80,6 @@ async def main() -> int:
     TWITCH_EVENTSUB.start()
 
     # run discord bot until interrupted
-    DISCORD_BOT.add_slash_command(add_stream)
     LOGGER.info("all ready, running Discord bot until interrupted")
     try:
         t = EVLOOP.create_task(DISCORD_BOT.start(DISCORD_TOKEN,
