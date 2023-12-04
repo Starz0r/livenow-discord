@@ -78,7 +78,7 @@ async def main() -> int:
     TWITCH_EVENTSUB.start()
 
     # run discord bot until interrupted
-    # DISCORD_BOT.add_slash_command(add_stream)
+    DISCORD_BOT.add_slash_command(add_stream)
     LOGGER.info("all ready, running Discord bot until interrupted")
     try:
         t = EVLOOP.create_task(DISCORD_BOT.start(DISCORD_TOKEN,
