@@ -19,12 +19,12 @@ TWITCH_EVENTSUB_URL: Final[str] = os.environ.get("TWITCH_EVENTSUB_URL")
 TWITCH_EVENTSUB: EventSubWebhook
 TWITCH: Twitch
 
-DISCORD_BOT: Final[commands.InteractionBot] = commands.InteractionBot()
+DISCORD_BOT: commands.InteractionBot = commands.InteractionBot()
 DISCORD_TOKEN: Final[str] = os.environ.get("DISCORD_TOKEN")
 DISCORD_CHANNEL: Final[str] = os.environ.get("DISCORD_CHANNEL")
 
 RETCODE: int = 0
-EVLOOP: Final[asyncio.AbstractEventLoop] = asyncio.get_event_loop()
+EVLOOP: Final[asyncio.AbstractEventLoop] = asyncio.new_event_loop()
 LOGGER: Final[structlog.stdlib.BoundLogger] = structlog.getLogger()
 RUNNING: bool = True
 MSGS: Dict[str, disnake.message.Message] = {}
@@ -77,9 +77,10 @@ async def main() -> int:
     TWITCH_EVENTSUB.start()
 
     # start discord bot
-    DISCORD_BOT.run(DISCORD_TOKEN)
+    await DISCORD_BOT.start(DISCORD_TOKEN, reconnect=True)
 
     # run until an interrupt is received
+    LOGGER.debug("got here")
     signal.signal(signal.SIGINT, stop_running)
     while RUNNING:
         await asyncio.sleep(1)
