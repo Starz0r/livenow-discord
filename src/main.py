@@ -1,9 +1,9 @@
 import asyncio
+import datetime
 import os
 import signal
 import sys
 from typing import Dict, Final
-import datetime
 
 import disnake
 import structlog
@@ -89,7 +89,7 @@ async def main() -> int:
     LOGGER.info("all ready, working until interrupted")
     signal.signal(signal.SIGINT, stop_running)
     while RUNNING:
-        LOGGER.debug("debug sleeping" t=datetime.now())
+        LOGGER.debug("debug sleeping", t=datetime.now())
         await asyncio.sleep(1)
     LOGGER.info("gracefully disconnecting from all services")
     await asyncio.gather(TWITCH_EVENTSUB.stop(), TWITCH.close(),
