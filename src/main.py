@@ -18,7 +18,13 @@ TWITCH_EVENTSUB_URL: Final[str] = os.environ.get("TWITCH_EVENTSUB_URL")
 TWITCH_EVENTSUB: EventSubWebhook
 TWITCH: Twitch
 
-DISCORD_BOT: commands.InteractionBot = commands.InteractionBot()
+DISCORD_CMD_SYNC_FLAGS: Final[
+    commands.CommandSyncFlags] = commands.CommandSyncFlags.default()
+DISCORD_CMD_SYNC_FLAGS.sync_commands_debug = True
+DISCORD_CMD_SYNC_FLAGS.sync_commands = True
+DISCORD_CMD_SYNC_FLAGS.allow_command_deletion = True
+DISCORD_BOT: commands.InteractionBot = commands.InteractionBot(
+    command_sync_flags=DISCORD_CMD_SYNC_FLAGS)
 DISCORD_TOKEN: Final[str] = os.environ.get("DISCORD_TOKEN")
 DISCORD_CHANNEL: Final[str] = os.environ.get("DISCORD_CHANNEL")
 
@@ -47,7 +53,7 @@ async def on_stream_online(payload: StreamOnlineEvent):
     MSGS.update({f"{payload.event.broadcaster_user_name}": msg})
 
 
-@DISCORD_BOT.slash_command()
+@DISCORD_BOT.slash_command(dm_permission=False)
 async def add_stream(ctx: disnake.ApplicationCommandInteraction, stream: str):
     twitch_user = await first(TWITCH.get_users(logins=[stream]))
     if twitch_user is None:
@@ -72,9 +78,11 @@ async def main() -> int:
     TWITCH_EVENTSUB.start()
 
     # run discord bot until interrupted
+    # DISCORD_BOT.add_slash_command(add_stream)
     LOGGER.info("all ready, running Discord bot until interrupted")
     try:
-        t = EVLOOP.create_task(DISCORD_BOT.start(DISCORD_TOKEN, reconnect=True))
+        t = EVLOOP.create_task(DISCORD_BOT.start(DISCORD_TOKEN,
+                                                 reconnect=True))
         await t
     except KeyboardInterrupt:
         LOGGER.info("stop called! shutting down...")
