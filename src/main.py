@@ -24,7 +24,7 @@ DISCORD_TOKEN: Final[str] = os.environ.get("DISCORD_TOKEN")
 DISCORD_CHANNEL: Final[str] = os.environ.get("DISCORD_CHANNEL")
 
 RETCODE: int = 0
-EVLOOP: Final[asyncio.AbstractEventLoop] = asyncio.new_event_loop()
+EVLOOP: Final[asyncio.AbstractEventLoop] = asyncio.get_event_loop()
 LOGGER: Final[structlog.stdlib.BoundLogger] = structlog.getLogger()
 RUNNING: bool = True
 MSGS: Dict[str, disnake.message.Message] = {}
