@@ -74,8 +74,8 @@ async def main() -> int:
     # run discord bot until interrupted
     LOGGER.info("all ready, running Discord bot until interrupted")
     try:
-        EVLOOP.run_until_complete(
-            DISCORD_BOT.start(DISCORD_TOKEN, reconnect=True))
+        t = EVLOOP.create_task(DISCORD_BOT.start(DISCORD_TOKEN, reconnect=True))
+        await t
     except KeyboardInterrupt:
         LOGGER.info("stop called! shutting down...")
     finally:
