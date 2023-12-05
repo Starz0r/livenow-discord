@@ -68,7 +68,7 @@ async def on_stream_online(payload: StreamOnlineEvent):
 )
 async def remove_stream(
     ctx: disnake.ApplicationCommandInteraction,
-    user: Optional[disnake.Member],
+    user: Optional[disnake.Member] = None,
 ) -> None:
     if user is not None:
         if ctx.author.get_role(int(DISCORD_MOD_ROLE)) is not None:
@@ -84,6 +84,7 @@ async def remove_stream(
                             topics=(topic_a, topic_b))
                 await ctx.send("♻ Stream was removed from the watchlist.")
                 return await ctx.delete_original_response(delay=15)
+
     if str(ctx.author.id) in REGISTERED_STREAMS:
         name, topic_a, topic_b = REGISTERED_STREAMS.pop(str(ctx.author.id))
         # TODO: also remove live notifications if there are any
@@ -96,6 +97,7 @@ async def remove_stream(
                     topics=(topic_a, topic_b))
         await ctx.send("♻ Stream was removed from the watchlist.")
         return await ctx.delete_original_response(delay=15)
+
     await ctx.send("Stream was not on the watchlist, nothing was done.")
     return await ctx.delete_original_response(delay=15)
 
