@@ -82,8 +82,8 @@ async def remove_stream(
                 LOGGER.info("unregistering stream",
                             stream=name,
                             topics=(topic_a, topic_b))
-                return await ctx.send(
-                    "♻ Stream was removed from the watchlist.")
+                await ctx.send("♻ Stream was removed from the watchlist.")
+                return await ctx.delete_original_response(delay=15)
     if str(ctx.author.id) in REGISTERED_STREAMS:
         name, topic_a, topic_b = REGISTERED_STREAMS.pop(str(ctx.author.id))
         # TODO: also remove live notifications if there are any
@@ -94,8 +94,10 @@ async def remove_stream(
         LOGGER.info("unregistering stream",
                     stream=name,
                     topics=(topic_a, topic_b))
-        return await ctx.send("♻ Stream was removed from the watchlist.")
-    return await ctx.send("Stream was not on the watchlist, nothing was done.")
+        await ctx.send("♻ Stream was removed from the watchlist.")
+        return await ctx.delete_original_response(delay=15)
+    await ctx.send("Stream was not on the watchlist, nothing was done.")
+    return await ctx.delete_original_response(delay=15)
 
 
 @DISCORD_BOT.slash_command(description="Add stream to the watchlist.")
@@ -103,8 +105,9 @@ async def add_stream(ctx: disnake.ApplicationCommandInteraction,
                      stream: str) -> None:
     twitch_user = await first(TWITCH.get_users(logins=[stream]))
     if twitch_user is None:
-        return await ctx.send(
+        await ctx.send(
             f"Could not find Twitch User with matching name of: {stream}.")
+        return await ctx.delete_original_response(delay=15)
 
     # check if discord user already registered a stream
     # TODO: also remove live notifications if there are any
@@ -119,7 +122,7 @@ async def add_stream(ctx: disnake.ApplicationCommandInteraction,
             TWITCH_EVENTSUB.unsubscribe_topic(topic_a),
             TWITCH_EVENTSUB.unsubscribe_topic(topic_b),
         )
-    
+
     LOGGER.info("subscribing to events")
     topic_a, topic_b = await asyncio.gather(
         TWITCH_EVENTSUB.listen_stream_online(twitch_user.id, on_stream_online),
@@ -132,7 +135,8 @@ async def add_stream(ctx: disnake.ApplicationCommandInteraction,
     REGISTERED_STREAMS.update(
         {f"{ctx.author.id}": (twitch_user.display_name, topic_a, topic_b)})
     LOGGER.info("responding to user.")
-    return await ctx.send("🎥 Stream added to the watchlist!")
+    await ctx.send("🎥 Stream added to the watchlist!")
+    return await ctx.delete_original_response(delay=15)
 
 
 @DISCORD_BOT.event
