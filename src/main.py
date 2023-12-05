@@ -58,9 +58,18 @@ async def on_stream_online(payload: StreamOnlineEvent):
         {f"{payload.event.broadcaster_user_name}": msg})
 
 
-@DISCORD_BOT.slash_command(description="Remove stream from the watchlist.")
-async def remove_stream(ctx: disnake.ApplicationCommandInteraction,
-                        user: Optional[disnake.User]) -> None:
+@DISCORD_BOT.slash_command(
+    description="Remove stream from the watchlist.",
+    options=[
+        disnake.Option(name="user",
+                       type=disnake.OptionType.user,
+                       required=False)
+    ],
+)
+async def remove_stream(
+    ctx: disnake.ApplicationCommandInteraction,
+    user: Optional[disnake.Member],
+) -> None:
     if user is not None:
         if ctx.author.get_role(int(DISCORD_MOD_ROLE)) is not None:
             if str(user.id) in REGISTERED_STREAMS:
