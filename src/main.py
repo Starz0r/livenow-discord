@@ -110,7 +110,8 @@ async def add_stream(ctx: disnake.ApplicationCommandInteraction,
             TWITCH_EVENTSUB.unsubscribe_topic(topic_a),
             TWITCH_EVENTSUB.unsubscribe_topic(topic_b),
         )
-
+    
+    LOGGER.info("subscribing to events")
     topic_a, topic_b = await asyncio.gather(
         TWITCH_EVENTSUB.listen_stream_online(twitch_user.id, on_stream_online),
         TWITCH_EVENTSUB.listen_stream_offline(twitch_user.id,
@@ -121,8 +122,8 @@ async def add_stream(ctx: disnake.ApplicationCommandInteraction,
                 topics=(topic_a, topic_b))
     REGISTERED_STREAMS.update(
         {f"{ctx.author.id}": (twitch_user.display_name, topic_a, topic_b)})
-
-    return await ctx.send("🎥SStream added to the watchlist!")
+    LOGGER.info("responding to user.")
+    return await ctx.send("🎥 Stream added to the watchlist!")
 
 
 @DISCORD_BOT.event
@@ -142,6 +143,7 @@ async def main() -> int:
     LOGGER.info("setting up EventSub handlers")
     TWITCH_EVENTSUB = EventSubWebhook(TWITCH_EVENTSUB_URL, 8080, TWITCH)
     TWITCH_EVENTSUB.start()
+    await TWITCH_EVENTSUB.unsubscribe_all()
 
     # run discord bot until interrupted
     LOGGER.info("all ready, running Discord bot until interrupted", )
