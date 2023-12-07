@@ -158,7 +158,7 @@ async def main() -> int:
     LOGGER.info("setting up EventSub handlers")
     TWITCH_EVENTSUB = EventSubWebhook(TWITCH_EVENTSUB_URL, 8080, TWITCH)
     TWITCH_EVENTSUB.start()
-    await TWITCH_EVENTSUB.unsubscribe_all()
+    # await TWITCH_EVENTSUB.unsubscribe_all()
 
     # run discord bot until interrupted
     LOGGER.info("all ready, running Discord bot until interrupted", )
