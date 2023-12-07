@@ -40,7 +40,7 @@ DISCORD_MOD_ROLE: Final[str] = os.environ.get("DISCORD_MOD_ROLE")
 
 async def on_stream_offline(payload: StreamOfflineEvent):
     msg = ACTIVE_NOTIFICATIONS.pop(payload.event.broadcaster_user_name)
-    await msg.delete()
+    asyncio.run_coroutine_threadsafe(asyncio.Task(msg.delete()), EVLOOP).result()
 
 
 async def on_stream_online(payload: StreamOnlineEvent):
@@ -52,8 +52,8 @@ async def on_stream_online(payload: StreamOnlineEvent):
             ch=ch,
             target=DISCORD_CHANNEL,
         )
-    msg = await ch.send(
-        f"https://twitch.tv/{payload.event.broadcaster_user_name}")
+    msg = asyncio.run_coroutine_threadsafe(asyncio.Task(ch.send(
+        f"https://twitch.tv/{payload.event.broadcaster_user_name}")), EVLOOP).result()
     ACTIVE_NOTIFICATIONS.update(
         {f"{payload.event.broadcaster_user_name}": msg})
 
